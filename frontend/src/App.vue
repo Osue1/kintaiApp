@@ -66,22 +66,6 @@ async function onLogout() {
               <i class="pi" :class="item.icon" aria-hidden="true"></i>
               {{ item.label }}
             </RouterLink>
-            <template v-if="auth.me.is_admin">
-              <span class="nav__divider" aria-hidden="true"></span>
-              <RouterLink
-                v-for="item in adminNavItems"
-                :key="item.name"
-                :to="{ name: item.name }"
-                class="nav__item nav__item--admin"
-                :class="{ 'nav__item--active': route.name === item.name }"
-              >
-                <i class="pi" :class="item.icon" aria-hidden="true"></i>
-                {{ item.label }}
-                <span v-if="item.name === 'approvals' && approvals.pendingCount > 0" class="nav__badge">
-                  {{ approvals.pendingCount }}
-                </span>
-              </RouterLink>
-            </template>
           </nav>
         </div>
         <div class="bar__right">
@@ -93,6 +77,29 @@ async function onLogout() {
         </div>
       </div>
     </header>
+    <!--
+      管理者向けメニューはヘッダーには置かない。社員向け4項目だけでもヘッダーが
+      窮屈になりやすい上、管理者は合計11項目になり画面幅に入りきらなかった
+      （縦書き崩れの原因にもなった）。メイン画面上部の専用タブに分離し、
+      どのページを見ていても管理者メニューへ常時アクセスできるようにする。
+    -->
+    <nav v-if="auth.me?.is_admin" class="admin-tabs" aria-label="管理者メニュー">
+      <div class="admin-tabs__inner">
+        <RouterLink
+          v-for="item in adminNavItems"
+          :key="item.name"
+          :to="{ name: item.name }"
+          class="admin-tab"
+          :class="{ 'admin-tab--active': route.name === item.name }"
+        >
+          <i class="pi" :class="item.icon" aria-hidden="true"></i>
+          {{ item.label }}
+          <span v-if="item.name === 'approvals' && approvals.pendingCount > 0" class="nav__badge">
+            {{ approvals.pendingCount }}
+          </span>
+        </RouterLink>
+      </div>
+    </nav>
     <main class="main">
       <RouterView />
     </main>
@@ -152,24 +159,54 @@ body {
 .nav__item + .nav__item { margin-left: 20px; }
 .nav__item:hover { color: var(--ink); }
 .nav__item--active { color: var(--accent-dark); border-bottom-color: var(--accent); }
-.nav__item--admin.nav__item--active { color: var(--warning); border-bottom-color: var(--warning); }
-.nav__divider { flex: 0 0 auto; width: 1px; height: 20px; background: var(--line); margin: 0 16px; }
 .nav__badge {
   display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px;
   padding: 0 5px; border-radius: 999px; background: var(--danger); color: #fff; font-size: 11px; font-weight: 700;
 }
-.bar__right { display: flex; align-items: center; gap: 16px; }
-.user { display: flex; align-items: center; gap: 8px; }
+/*
+ * bar__left（ロゴ＋ナビ）は横幅が足りないとき .nav の overflow-x: auto で
+ * 内部スクロールさせる想定だが、bar__right 側に flex-shrink を止める指定が
+ * 無かったため、画面（特に管理者はナビ項目が多く圧迫されやすい）が狭いと
+ * flexboxがこちら側を圧縮対象にしてしまっていた。日本語テキストは
+ * スペース無しでも文字間で改行できてしまうため、圧縮されると
+ * 「管理者」「ログアウト」が1文字ずつ縦に積まれ、縦書きのように見えていた。
+ * flex-shrink: 0 と white-space: nowrap で、ここが縮む前にナビの方が
+ * 先にスクロールするようにする。
+ */
+.bar__right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.user { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 .user__avatar {
   width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-dark);
   display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+  flex-shrink: 0;
 }
-.user__name { font-size: 13px; color: var(--muted); }
+.user__name { font-size: 13px; color: var(--muted); white-space: nowrap; }
 .linkbtn {
   background: none; border: 0; color: var(--accent-dark); cursor: pointer;
-  font: inherit; font-size: 13px; padding: 6px 10px; border-radius: 6px;
+  font: inherit; font-size: 13px; padding: 6px 10px; border-radius: 6px; white-space: nowrap; flex-shrink: 0;
 }
 .linkbtn:hover { background: var(--paper); }
 .linkbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 管理者専用のタブバー。ヘッダー（60px）の直下に張り付けて、
+   スクロールしてもヘッダーと一緒に見え続けるようにする。 */
+.admin-tabs {
+  position: sticky; top: 60px; z-index: 9;
+  background: var(--warning-soft); border-bottom: 1px solid #f4dfb8;
+}
+.admin-tabs__inner {
+  max-width: 1200px; margin: 0 auto; padding: 0 24px;
+  display: flex; align-items: center; height: 44px; overflow-x: auto;
+}
+.admin-tab {
+  display: flex; align-items: center; gap: 6px; height: 100%; flex: 0 0 auto;
+  padding: 0 4px; color: var(--warning); text-decoration: none; font-size: 13px; font-weight: 600;
+  white-space: nowrap; border-bottom: 2px solid transparent; opacity: 0.75;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+.admin-tab + .admin-tab { margin-left: 22px; }
+.admin-tab:hover { opacity: 1; }
+.admin-tab--active { opacity: 1; border-bottom-color: var(--warning); }
+
 .main { max-width: 1200px; margin: 0 auto; padding: 32px 24px 96px; }
 </style>
