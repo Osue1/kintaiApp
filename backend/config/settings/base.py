@@ -30,6 +30,12 @@ CSRF_TRUSTED_ORIGINS = env("DJANGO_CSRF_TRUSTED_ORIGINS")
 # URL が変わってしまうため（追補 第5.5章）。
 PRIMARY_ORIGIN = env("DJANGO_PRIMARY_ORIGIN", default="http://localhost:5173")
 
+# サイト全体にかけるHTTP Basic認証（apps/common/middleware.py）。両方設定した
+# 環境でだけ有効になる。アプリ内のログイン機能とは別レイヤーの入口の防御で、
+# 無料枠で公開したデモ環境などを検索エンジンや偶然のアクセスから塞ぐ用途。
+BASIC_AUTH_USER = env("BASIC_AUTH_USER", default="")
+BASIC_AUTH_PASSWORD = env("BASIC_AUTH_PASSWORD", default="")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -39,7 +45,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "drf_spectacular",
-    "axes",
+    # "axes" ではなくこちらを登録して、管理画面の表示だけ日本語化する
+    # （apps/common/axes_app_config.py 参照。モデル・機能はaxes本体のまま）。
+    "apps.common.axes_app_config.LocalizedAxesConfig",
     "apps.common",
     "apps.accounts",
     "apps.attendance",
@@ -52,6 +60,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # 静的ファイルより前に置き、Basic認証が有効な環境ではCSS/JSも含めて
+    # 一番手前で塞ぐ（BASIC_AUTH_USER/PASSWORD未設定なら何もしない）。
+    "apps.common.middleware.BasicAuthMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

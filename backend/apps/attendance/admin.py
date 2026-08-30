@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from apps.common.admin import SubtitleAdminMixin
+
 from .models import (
     DailySummary,
     HolidayCalendar,
@@ -11,7 +13,13 @@ from .models import (
 
 
 @admin.register(WorkPattern)
-class WorkPatternAdmin(admin.ModelAdmin):
+class WorkPatternAdmin(SubtitleAdminMixin, admin.ModelAdmin):
+    changelist_subtitle = (
+        "所定労働時間・休憩の取り方・休日の曜日を決める勤務体系マスタ。従業員ごとに1つ割り当てる"
+        "（従業員管理画面から割当）。「新規ユーザーの初期割当」がONのものが、割当を忘れたときの"
+        "既定値になる。「所定休日」は会社が決めた休みの曜日、「法定休日」は労基法で週1日以上"
+        "必要な休日（この曜日の労働は法定休日労働として扱われる）。"
+    )
     list_display = ["name", "break_mode", "scheduled_minutes", "statutory_holiday_dow", "is_default"]
     list_filter = ["break_mode", "is_default"]
     fieldsets = (
@@ -23,7 +31,12 @@ class WorkPatternAdmin(admin.ModelAdmin):
 
 
 @admin.register(HolidayCalendar)
-class HolidayCalendarAdmin(admin.ModelAdmin):
+class HolidayCalendarAdmin(SubtitleAdminMixin, admin.ModelAdmin):
+    changelist_subtitle = (
+        "会社カレンダー（営業日・国民の祝日・会社独自の休業日）。国民の祝日は自動投入済みだが、"
+        "夏季休業・年末年始などの会社独自の休みはここに追加する。ここに登録した日は"
+        "勤怠集計で休日として扱われる。"
+    )
     list_display = ["date", "day_type", "name"]
     list_filter = ["day_type"]
     date_hierarchy = "date"
