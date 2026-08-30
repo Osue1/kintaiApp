@@ -16,6 +16,21 @@ def _isolate_media_root(tmp_path, settings):
     settings.MEDIA_ROOT = tmp_path
 
 
+@pytest.fixture(autouse=True)
+def _disable_basic_auth_by_default(settings):
+    """開発者のローカルシェルにBASIC_AUTH_USER/PASSWORDが設定されていても、
+    テストの合否がそれに左右されないようにする（apps/common/middleware.py）。
+
+    実際にこの対策を入れる前、開発者のシェル環境変数にBASIC_AUTH_USER/
+    PASSWORDが残っていたせいで、Basic認証と無関係な既存テストが軒並み
+    401で落ちる実害が起きた。Basic認証自体を試験したいテストは、各テスト
+    内で settings.BASIC_AUTH_USER 等を明示的に上書きすること
+    （tests/test_basic_auth_middleware.py 参照）。
+    """
+    settings.BASIC_AUTH_USER = ""
+    settings.BASIC_AUTH_PASSWORD = ""
+
+
 @pytest.fixture
 def company(db) -> Company:
     return Company.objects.create(name="株式会社テスト", invoice_reg_no="T1234567890123")
