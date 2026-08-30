@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>年次有給休暇管理簿 {{ employee.name }}</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  body { font-family: "Noto Sans JP", "Hiragino Sans", sans-serif; font-size: 10.5pt; color: #16211c; }
+  h1 { font-size: 15pt; text-align: center; margin: 0 0 4px; }
+  .sub { text-align: center; color: #64756d; margin-bottom: 20px; font-size: 9.5pt; }
+  .facts { margin: 0 0 18px; font-size: 9.5pt; }
+  .facts td { padding: 2px 10px 2px 0; }
+  table.grant { width: 100%; border-collapse: collapse; margin-bottom: 16px; page-break-inside: avoid; }
+  table.grant th, table.grant td { border: 1px solid #b9c4bc; padding: 5px 7px; font-size: 9.5pt; }
+  table.grant thead th { background: #edf0ec; text-align: left; }
+  .grant-head { display: flex; justify-content: space-between; font-size: 10pt; font-weight: 700; margin: 10px 0 4px; }
+  .grant-head .expired { color: #b24428; font-weight: 400; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .note { margin-top: 20px; font-size: 8.5pt; color: #64756d; line-height: 1.7; }
+</style>
+</head>
+<body>
+  <h1>年次有給休暇管理簿</h1>
+  <p class="sub">{{ company.name }}</p>
+
+  <table class="facts">
+    <tr><td>氏名</td><td>{{ employee.name }}</td></tr>
+    <tr><td>入社日</td><td>{{ employee.hire_date|default:"—" }}</td></tr>
+  </table>
+
+  {% for g in grants %}
+  <div class="grant-head">
+    <span>基準日 {{ g.granted_on }}（付与 {{ g.days }}日）</span>
+    <span{% if g.is_expired %} class="expired"{% endif %}>失効日 {{ g.expires_on }}{% if g.is_expired %} - 失効済み{% endif %}</span>
+  </div>
+  <table class="grant">
+    <thead>
+      <tr><th>時季（取得日）</th><th>休暇種類</th><th>日数</th></tr>
+    </thead>
+    <tbody>
+      {% for c in g.consumptions %}
+      <tr><td>{{ c.date_label }}</td><td>{{ c.leave_type_name }}</td><td class="num">{{ c.days }}日</td></tr>
+      {% empty %}
+      <tr><td colspan="3">取得実績なし</td></tr>
+      {% endfor %}
+      <tr><td colspan="2"><strong>残日数</strong></td><td class="num"><strong>{{ g.remaining }}日</strong></td></tr>
+    </tbody>
+  </table>
+  {% empty %}
+  <p>付与記録がありません。</p>
+  {% endfor %}
+
+  <p class="note">
+    労働基準法施行規則第24条の7に基づく年次有給休暇管理簿。時季・日数・基準日を記録し、
+    当該有給休暇を与えた期間中および期間満了後3年間保存する。
+  </p>
+</body>
+</html>

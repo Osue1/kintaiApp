@@ -1,0 +1,49 @@
+[project]
+name = "kintai-backend"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "Django>=5.1,<5.2",
+    "djangorestframework>=3.15,<3.16",
+    "drf-spectacular>=0.27,<0.28",
+    "psycopg[binary]>=3.2,<3.3",
+    "django-environ>=0.11,<0.12",
+    "django-axes>=6.5,<7.0",
+    "gunicorn>=23.0",
+    "whitenoise>=6.7",
+    "WeasyPrint>=62.0",
+    "jpholiday>=0.1.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-django>=4.9",
+    "pytest-cov>=5.0",
+    "freezegun>=1.5",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "django-stubs>=5.0",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "DJ", "N"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["mypy_django_plugin.main"]
+strict_optional = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings.dev"

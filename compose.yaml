@@ -1,0 +1,35 @@
+# ローカル開発用。本番は Cloud Run + Cloud SQL（追補 第4章）
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kintai
+      POSTGRES_PASSWORD: kintai
+      POSTGRES_DB: kintai
+      TZ: Asia/Tokyo
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kintai"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DJANGO_SECRET_KEY: dev-only-change-me
+      DJANGO_DEBUG: "true"
+      DATABASE_URL: postgres://kintai:kintai@db:5432/kintai
+      DJANGO_PRIMARY_ORIGIN: http://localhost:5173
+      TZ: Asia/Tokyo
+    volumes: ["./backend:/app"]
+    ports: ["8000:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Django
+*.sqlite3
+/backend/staticfiles/
+/backend/media/
+
+# Node
+node_modules/
+/frontend/dist/
+.vite/
+
+# Playwright（E2E試験）の実行結果
+/frontend/test-results/
+/frontend/playwright-report/
+
+# scripts/local-dev.sh の PID・ログ
+/.local/
+
+# Env
+.env
+.env.local
+*.local
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+# tfvars は環境台帳そのものなのでコミットする（機密は Secret Manager へ）
+!infra/tenants/*.tfvars
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# 設計書・手順書の類はGit管理対象外（設計書はArtifactで管理。ローカル参照のみ）。
+# ルートのREADME.md（シェルの起動方法などを含む）だけは対象に含める。
+/勤怠管理・外注請求システム仕様書.mhtml
+/docs/
+/infra/README.md
+
+# Claude Code のセッション状態（ループタスクのロックファイル等）。ソースではない。
+/.claude/

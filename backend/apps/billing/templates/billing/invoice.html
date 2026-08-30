@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>{{ invoice.invoice_no }}</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+  body { font-family: "Noto Sans JP", "Hiragino Sans", sans-serif; font-size: 11pt; color: #16211c; }
+  h1 { font-size: 18pt; text-align: center; margin: 0 0 24px; letter-spacing: 0.2em; }
+  .meta { display: flex; justify-content: space-between; margin-bottom: 24px; }
+  .meta .to { font-size: 13pt; }
+  .meta .to .name { font-weight: 700; border-bottom: 1px solid #16211c; padding-bottom: 4px; }
+  .meta .from { text-align: right; font-size: 9.5pt; line-height: 1.6; }
+  .facts { margin: 0 0 20px; font-size: 9.5pt; }
+  .facts td { padding: 2px 8px 2px 0; }
+  table.lines { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+  table.lines th, table.lines td { border: 1px solid #b9c4bc; padding: 6px 8px; font-size: 10pt; }
+  table.lines th { background: #edf0ec; text-align: left; }
+  table.lines td.num { text-align: right; }
+  table.totals { width: 60%; margin-left: auto; border-collapse: collapse; }
+  table.totals td { padding: 5px 8px; font-size: 10.5pt; }
+  table.totals td.label { color: #64756d; }
+  table.totals td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.totals tr.payable td { font-weight: 700; font-size: 13pt; border-top: 2px solid #16211c; }
+  .note { margin-top: 28px; font-size: 8.5pt; color: #64756d; line-height: 1.7; }
+</style>
+</head>
+<body>
+  <h1>お支払い明細書</h1>
+
+  <div class="meta">
+    <div class="to">
+      <div class="name">{{ contractor.name }} 様</div>
+    </div>
+    <div class="from">
+      {{ company.name }}<br>
+      {{ company.address }}<br>
+      {% if company.invoice_reg_no %}登録番号: {{ company.invoice_reg_no }}<br>{% endif %}
+      発行日: {{ invoice.issued_on|date:"Y年n月j日" }}<br>
+      書類番号: {{ invoice.invoice_no }}
+    </div>
+  </div>
+
+  <table class="facts">
+    <tr><td>対象期間</td><td>{{ invoice.period_start|date:"Y年n月j日" }}〜{{ invoice.period_end|date:"Y年n月j日" }}</td></tr>
+    <tr><td>取引年月日</td><td>{{ invoice.period_end|date:"Y年n月j日" }}</td></tr>
+  </table>
+
+  <table class="lines">
+    <thead>
+      <tr>
+        <th>取引内容</th>
+        <th>数量</th>
+        <th>単価</th>
+        <th>税率区分</th>
+        <th>金額（税抜）</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for line in lines %}
+      <tr>
+        <td>{{ line.description }}</td>
+        <td class="num">{{ line.quantity }}</td>
+        <td class="num">¥{{ line.unit_price|floatformat:0 }}</td>
+        <td>{{ line.get_tax_category_display }}</td>
+        <td class="num">¥{{ line.amount|floatformat:0 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tr><td class="label">小計（税抜）</td><td class="num">¥{{ invoice.subtotal|floatformat:0 }}</td></tr>
+    <tr><td class="label">消費税額（{{ invoice.get_tax_category_display }}）</td><td class="num">¥{{ invoice.tax_amount|floatformat:0 }}</td></tr>
+    {% if invoice.withholding_amount %}
+    <tr><td class="label">源泉徴収税額</td><td class="num">−¥{{ invoice.withholding_amount|floatformat:0 }}</td></tr>
+    {% endif %}
+    <tr class="payable"><td class="label">差引支払額</td><td class="num">¥{{ invoice.payable_amount|floatformat:0 }}</td></tr>
+  </table>
+
+  {% if invoice.exempt_deduction_percent %}
+  <p class="note">
+    貴殿は免税事業者であるため、本明細の消費税相当額のうち経過措置により
+    {{ invoice.exempt_deduction_percent }}% を仕入税額として控除しております。
+  </p>
+  {% endif %}
+
+  <p class="note">
+    本書は仕入明細書として発行しております。記載内容につきご確認事項がございましたら、
+    発行日より7日以内にご連絡ください。期限までにご連絡がない場合は、内容をご確認いただいた
+    ものとして取り扱わせていただきます。
+  </p>
+</body>
+</html>

@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: kintai
+          POSTGRES_PASSWORD: kintai
+          POSTGRES_DB: kintai
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DJANGO_SECRET_KEY: ci-only
+      DATABASE_URL: postgres://kintai:kintai@localhost:5432/kintai
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .[dev]
+      - name: Lint
+        run: ruff check .
+      - name: マイグレーションの取り漏れがないこと
+        run: python manage.py makemigrations --check --dry-run
+      - name: 破壊的なスキーマ変更が入っていないこと
+        # 段階デプロイでバージョンが並走するため、カラム削除・リネームは2リリースに分ける
+        # （追補 第7.2章）。人の注意力に頼らずCIで落とす。
+        run: |
+          if git diff --name-only origin/${{ github.base_ref || 'main' }}...HEAD -- '*/migrations/*.py' \
+             | xargs -r grep -lE 'RemoveField|RenameField|DeleteModel|RenameModel' ; then
+            echo "::error::破壊的なスキーマ変更が含まれています。2リリースに分けてください。"
+            exit 1
+          fi
+      - name: Test
+        run: pytest --cov=apps --cov-report=term-missing
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - run: npm run build
