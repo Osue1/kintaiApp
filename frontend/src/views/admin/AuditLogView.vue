@@ -182,7 +182,7 @@ function changesFor(entry: AuditLogEntry): string[] {
   padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; font: inherit; background: var(--surface);
 }
 
-.card-head { display: flex; align-items: center; justify-content: space-between; font-size: 15px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; font-size: 15px; flex-wrap: wrap; gap: 4px 12px; }
 .card-head__count { font-size: 12px; color: var(--muted); font-weight: 500; }
 
 .changes { margin: 0; padding-left: 16px; font-size: 12.5px; color: var(--ink); }

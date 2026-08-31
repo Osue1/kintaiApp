@@ -311,4 +311,39 @@ body {
 }
 
 .main { max-width: 1200px; margin: 0 auto; padding: 32px 24px 96px; }
+
+/*
+ * PrimeVue の Dialog は中央配置（デフォルト position）だと幅を画面サイズで
+ * クランプする仕組みが無く、各画面で指定している固定px幅（420〜520px）が
+ * そのまま使われる。スマホ幅（375px前後）では中身がはみ出して操作不能に
+ * なるため、ビューポート幅を超えないよう上限をここで一括して掛けておく。
+ */
+.p-dialog { max-width: calc(100vw - 32px); }
+
+/*
+ * PrimeVue DataTable はテーブル部分だけ overflow:auto で横スクロールする
+ * 実装になっているが、慣性スクロールを効かせてスマホでの操作感を良くする。
+ */
+.p-datatable-table-container { -webkit-overflow-scrolling: touch; }
+
+/*
+ * DataTable のヘッダーはデフォルトで table-layout:auto のまま折り返し可能なため、
+ * 画面幅が足りない（スマホの管理画面テーブルなど）と「メールアドレス」のような
+ * 見出しが1文字ずつ縦に折り返されてしまう（ヘッダーで直した文字重なりと同じ現象）。
+ * ヘッダーだけ折り返し禁止にして、代わりにテーブル自体を横スクロールさせる。
+ */
+.p-datatable-thead > tr > th { white-space: nowrap; }
+
+/*
+ * PrimeVue の Button はラベル部分に white-space の指定が無いため、
+ * 検索欄やタグと横並びにしたツールバーが画面幅で圧迫されたとき、
+ * 日本語ラベルがスペース無しで1文字ずつ縦に折り返されてしまう
+ * （ヘッダーの「管理者」「ログアウト」で起きていたのと同じ現象）。
+ * ボタンラベルは折り返さず、代わりに親要素側で折り返し・縮小に対応する。
+ */
+.p-button-label { white-space: nowrap; }
+
+@media (max-width: 480px) {
+  .p-dialog { max-width: calc(100vw - 24px); }
+}
 </style>

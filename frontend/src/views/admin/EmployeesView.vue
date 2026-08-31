@@ -300,7 +300,13 @@ async function onSubmitEdit() {
 .eyebrow { margin: 0 0 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
 .page__title { margin: 0; font-size: 24px; }
 
-.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+.toolbar :deep(.p-inputtext) { width: 100%; }
+
+@media (max-width: 560px) {
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar > * { width: 100%; }
+}
 
 .form { display: flex; flex-direction: column; gap: 14px; }
 .form__target { margin: -6px 0 0; font-size: 12px; color: var(--muted); }

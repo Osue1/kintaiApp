@@ -100,7 +100,7 @@ function onDownloadPdf() {
 .loading, .empty { color: var(--muted); font-size: 13px; }
 
 .grant-card + .grant-card { margin-top: 16px; }
-.grant-head { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+.grant-head { display: flex; align-items: center; justify-content: space-between; font-size: 14px; flex-wrap: wrap; gap: 4px 12px; }
 .grant-head__right { display: flex; align-items: center; gap: 10px; }
 .grant-head__remaining { font-size: 13px; color: var(--muted); font-weight: 600; }
 </style>

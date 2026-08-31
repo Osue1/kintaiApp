@@ -243,7 +243,8 @@ async function onSubmit() {
 .form { display: flex; flex-direction: column; gap: 16px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-row { display: flex; gap: 12px; }
-.field-row .field { flex: 1; }
+.field-row .field { flex: 1; min-width: 0; }
+@media (max-width: 400px) { .field-row { flex-direction: column; } }
 .field__label { font-size: 13px; color: var(--muted); font-weight: 600; }
 .field input {
   padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; font: inherit; background: var(--surface);
