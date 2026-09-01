@@ -329,8 +329,13 @@ function recordLabel(row: (typeof monthRecords.value)[number]): string {
 .page__title { margin: 0; font-size: 24px; }
 
 .panel-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 16px 0; flex-wrap: wrap; }
-.panel-head__actions { display: flex; align-items: center; gap: 10px; }
+.panel-head__actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .lede { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 560px; }
+
+@media (max-width: 480px) {
+  .panel-head__actions { width: 100%; }
+  .panel-head__actions > * { width: 100%; }
+}
 
 .work { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 20px; margin-top: 16px; }
 @media (max-width: 860px) { .work { grid-template-columns: 1fr; } }
@@ -338,7 +343,8 @@ function recordLabel(row: (typeof monthRecords.value)[number]): string {
 .form { display: flex; flex-direction: column; gap: 16px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-row { display: flex; gap: 12px; }
-.field-row .field { flex: 1; }
+.field-row .field { flex: 1; min-width: 0; }
+@media (max-width: 480px) { .field-row { flex-direction: column; } }
 .field__label { font-size: 13px; color: var(--muted); font-weight: 600; }
 .field input[type='month'] {
   padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; font: inherit; background: var(--surface);

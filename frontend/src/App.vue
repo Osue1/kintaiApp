@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Toast from 'primevue/toast'
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useApprovalsStore } from '@/stores/approvals'
 import { useAuthStore } from '@/stores/auth'
@@ -11,6 +11,7 @@ const router = useRouter()
 const route = useRoute()
 const companyName = computed(() => auth.me?.company?.name ?? '')
 const initial = computed(() => auth.me?.name?.charAt(0) ?? '')
+const mobileMenuOpen = ref(false)
 
 const navItems = [
   { name: 'mypage', label: 'マイページ', icon: 'pi-home' },
@@ -38,6 +39,14 @@ watch(
   { immediate: true },
 )
 
+// 画面遷移したらスマホ用メニューは自動で閉じる
+watch(
+  () => route.name,
+  () => {
+    mobileMenuOpen.value = false
+  },
+)
+
 async function onLogout() {
   await auth.logout()
   router.push({ name: 'login' })
@@ -49,6 +58,16 @@ async function onLogout() {
     <header v-if="auth.me" class="bar">
       <div class="bar__inner">
         <div class="bar__left">
+          <button
+            type="button"
+            class="hamburger"
+            :aria-expanded="mobileMenuOpen"
+            aria-controls="mobile-menu"
+            aria-label="メニューを開閉"
+            @click="mobileMenuOpen = !mobileMenuOpen"
+          >
+            <i class="pi" :class="mobileMenuOpen ? 'pi-times' : 'pi-bars'" aria-hidden="true"></i>
+          </button>
           <span class="brand">
             <i class="pi pi-clock brand__icon" aria-hidden="true"></i>
             <span class="brand__text">
@@ -76,6 +95,43 @@ async function onLogout() {
           <button type="button" class="linkbtn" @click="onLogout">ログアウト</button>
         </div>
       </div>
+      <nav v-if="mobileMenuOpen" id="mobile-menu" class="mobile-menu" aria-label="メニュー">
+        <RouterLink
+          v-for="item in navItems"
+          :key="item.name"
+          :to="{ name: item.name }"
+          class="mobile-menu__item"
+          :class="{ 'mobile-menu__item--active': route.name === item.name }"
+        >
+          <i class="pi" :class="item.icon" aria-hidden="true"></i>
+          {{ item.label }}
+        </RouterLink>
+        <template v-if="auth.me?.is_admin">
+          <div class="mobile-menu__divider">管理者メニュー</div>
+          <RouterLink
+            v-for="item in adminNavItems"
+            :key="item.name"
+            :to="{ name: item.name }"
+            class="mobile-menu__item"
+            :class="{ 'mobile-menu__item--active': route.name === item.name }"
+          >
+            <i class="pi" :class="item.icon" aria-hidden="true"></i>
+            {{ item.label }}
+            <span v-if="item.name === 'approvals' && approvals.pendingCount > 0" class="nav__badge">
+              {{ approvals.pendingCount }}
+            </span>
+          </RouterLink>
+        </template>
+        <div class="mobile-menu__divider"></div>
+        <div class="mobile-menu__user">
+          <span class="user__avatar">{{ initial }}</span>
+          {{ auth.me.name }}
+        </div>
+        <button type="button" class="mobile-menu__item mobile-menu__logout" @click="onLogout">
+          <i class="pi pi-sign-out" aria-hidden="true"></i>
+          ログアウト
+        </button>
+      </nav>
     </header>
     <!--
       管理者向けメニューはヘッダーには置かない。社員向け4項目だけでもヘッダーが
@@ -147,6 +203,13 @@ body {
   display: flex; align-items: center; justify-content: space-between; height: 60px;
 }
 .bar__left { display: flex; align-items: center; gap: 28px; height: 100%; min-width: 0; }
+.hamburger {
+  display: none; align-items: center; justify-content: center;
+  width: 36px; height: 36px; flex-shrink: 0; margin-right: -8px;
+  background: none; border: 0; border-radius: 8px; color: var(--ink); font-size: 18px; cursor: pointer;
+}
+.hamburger:hover { background: var(--paper); }
+.hamburger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; white-space: nowrap; }
 .brand__icon { color: var(--accent); font-size: 16px; }
 .brand__company { color: var(--muted); font-weight: 500; }
@@ -208,5 +271,79 @@ body {
 .admin-tab:hover { opacity: 1; }
 .admin-tab--active { opacity: 1; border-bottom-color: var(--warning); }
 
+/* スマホ用ドロップダウンメニュー。通常はヘッダーに畳み込まれており、
+   ハンバーガーボタンを押したときだけヘッダー直下に開く。 */
+.mobile-menu {
+  display: none;
+  flex-direction: column; gap: 2px;
+  padding: 8px 16px 16px; border-top: 1px solid var(--line);
+}
+.mobile-menu__item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 10px; border-radius: 8px;
+  color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 600;
+  background: none; border: 0; text-align: left; font-family: inherit; cursor: pointer; width: 100%;
+}
+.mobile-menu__item:hover { background: var(--paper); }
+.mobile-menu__item--active { color: var(--accent-dark); background: var(--accent-soft); }
+.mobile-menu__logout { color: var(--accent-dark); }
+.mobile-menu__divider {
+  margin: 8px 2px 4px; padding-top: 8px; border-top: 1px solid var(--line);
+  font-size: 12px; font-weight: 700; color: var(--muted);
+}
+.mobile-menu__user {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  font-size: 13px; font-weight: 600; color: var(--muted);
+}
+
+/* 860px 未満はナビと管理者タブをヘッダーから外し、ハンバーガーメニューに集約する。
+   画面幅が足りずナビ項目や「ログアウト」ボタンが圧縮されて文字が縦積み・重なりに
+   なる問題を避けるため。 */
+@media (max-width: 860px) {
+  .hamburger { display: flex; }
+  .nav, .brand__company, .user__name { display: none; }
+  .bar__inner { padding: 0 16px; }
+  .bar__left { gap: 12px; }
+  .bar__right { gap: 8px; }
+  .admin-tabs { display: none; }
+  .mobile-menu { display: flex; }
+  .main { padding: 20px 16px 80px; }
+}
+
 .main { max-width: 1200px; margin: 0 auto; padding: 32px 24px 96px; }
+
+/*
+ * PrimeVue の Dialog は中央配置（デフォルト position）だと幅を画面サイズで
+ * クランプする仕組みが無く、各画面で指定している固定px幅（420〜520px）が
+ * そのまま使われる。スマホ幅（375px前後）では中身がはみ出して操作不能に
+ * なるため、ビューポート幅を超えないよう上限をここで一括して掛けておく。
+ */
+.p-dialog { max-width: calc(100vw - 32px); }
+
+/*
+ * PrimeVue DataTable はテーブル部分だけ overflow:auto で横スクロールする
+ * 実装になっているが、慣性スクロールを効かせてスマホでの操作感を良くする。
+ */
+.p-datatable-table-container { -webkit-overflow-scrolling: touch; }
+
+/*
+ * DataTable のヘッダーはデフォルトで table-layout:auto のまま折り返し可能なため、
+ * 画面幅が足りない（スマホの管理画面テーブルなど）と「メールアドレス」のような
+ * 見出しが1文字ずつ縦に折り返されてしまう（ヘッダーで直した文字重なりと同じ現象）。
+ * ヘッダーだけ折り返し禁止にして、代わりにテーブル自体を横スクロールさせる。
+ */
+.p-datatable-thead > tr > th { white-space: nowrap; }
+
+/*
+ * PrimeVue の Button はラベル部分に white-space の指定が無いため、
+ * 検索欄やタグと横並びにしたツールバーが画面幅で圧迫されたとき、
+ * 日本語ラベルがスペース無しで1文字ずつ縦に折り返されてしまう
+ * （ヘッダーの「管理者」「ログアウト」で起きていたのと同じ現象）。
+ * ボタンラベルは折り返さず、代わりに親要素側で折り返し・縮小に対応する。
+ */
+.p-button-label { white-space: nowrap; }
+
+@media (max-width: 480px) {
+  .p-dialog { max-width: calc(100vw - 24px); }
+}
 </style>

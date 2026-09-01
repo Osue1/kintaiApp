@@ -396,7 +396,7 @@ async function onSubmitCorrection() {
 .bar__fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
 .bar__fill--warn { background: var(--warning); }
 
-.card-head { display: flex; align-items: center; justify-content: space-between; font-size: 15px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; font-size: 15px; flex-wrap: wrap; gap: 4px 12px; }
 .card-head__actions { display: flex; align-items: center; gap: 14px; }
 
 .notif-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }

@@ -121,7 +121,7 @@ const overtimeSeverityMeta: Record<OvertimeAlertSeverity, { label: string; tag: 
 .page__title { margin: 0; font-size: 24px; }
 .section + .section { margin-top: 20px; }
 
-.card-head { display: flex; align-items: center; justify-content: space-between; font-size: 15px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; font-size: 15px; flex-wrap: wrap; gap: 4px 12px; }
 .card-head__count { font-size: 12px; color: var(--muted); font-weight: 500; }
 .lede { margin: -4px 0 14px; font-size: 12.5px; color: var(--muted); }
 
